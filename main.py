@@ -2,6 +2,7 @@ import pygame
 import sys
 from config import *
 from grid import Grid
+from exporter import save_grid_image, save_report
 
 pygame.init()
 screen = pygame.display.set_mode((SCREEN_WIDTH, SCREEN_HEIGHT))
@@ -33,9 +34,9 @@ def draw_legend(surface, stats):
         y += 30
 
 def draw_buttons():
-    button_labels = ["Старт", "Пауза", "Шаг", "Сброс"]
+    button_labels = ["Старт", "Пауза", "Шаг", "Сброс", "Сохранить"]
     buttons = []
-    start_y = SCREEN_HEIGHT - 160
+    start_y = SCREEN_HEIGHT - 200
     for i, label in enumerate(button_labels):
         rect = pygame.Rect(GRID_SIZE * CELL_SIZE + 20, start_y + i * 40, 160, 30)
         pygame.draw.rect(screen, (180, 180, 180), rect)
@@ -45,8 +46,11 @@ def draw_buttons():
         buttons.append((label, rect))
     return buttons
 
+# В начале файла, после создания grid добавьте:
+stats_history = []
+
 def handle_button_click(pos, buttons):
-    global paused, step_mode, grid
+    global paused, step_mode, grid, stats_history
     for label, rect in buttons:
         if rect.collidepoint(pos):
             if label == "Старт":
@@ -59,7 +63,20 @@ def handle_button_click(pos, buttons):
                 paused = False
             elif label == "Сброс":
                 grid = Grid()
+                stats_history = []  # Очищаем историю
                 paused = True
+            elif label == "Сохранить":  # Обрабатываем сохранение
+                update_screen()
+                save_grid_image(screen)  # Сохраняем изображение
+                save_report(stats_history)  # Сохраняем отчёт
+
+def update_screen():
+    screen.fill((255, 255, 255))
+    stats = grid.get_statistics()
+    grid.draw(screen)
+    draw_legend(screen, stats)
+    draw_buttons()
+    pygame.display.flip()
 
 def check_termination():
     if grid.changes_last_round < MIN_CHANGE_THRESHOLD:
@@ -77,6 +94,7 @@ while running:
 
     if not paused:
         grid.step()
+        stats_history.append(list(grid.get_statistics().values()))  # Сохраняем статистику
         if step_mode:
             paused = True
 
@@ -89,6 +107,8 @@ while running:
         paused = True
 
     pygame.display.flip()
+    
+    update_screen()
     clock.tick(FPS)
 
 pygame.quit()

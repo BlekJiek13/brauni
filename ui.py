@@ -27,7 +27,7 @@ class UIManager:
         self.create_buttons()
 
     def create_buttons(self):
-        labels = ["Старт", "Пауза", "Шаг", "Сброс", "Режим"]
+        labels = ["Старт", "Пауза", "Шаг", "Сброс", "Сохранить"]
         start_y = SCREEN_HEIGHT - 200
         for i, label in enumerate(labels):
             btn = UIButton(label, GRID_SIZE * CELL_SIZE + 20, start_y + i * 40)
